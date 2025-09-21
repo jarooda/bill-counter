@@ -101,7 +101,7 @@
     </div>
 
     <!-- Separator for Previous Years -->
-    <div v-if="pastYears.length > 0" class="border-gray-200 dark:border-gray-700 pt-8">
+    <div v-if="pastYears.length > 0" class="border-gray-200 dark:border-gray-700">
       <h2 class="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-6 flex items-center">
         <span class="mr-3">Previous Years</span>
         <div class="flex-1 border-t border-gray-200 dark:border-gray-700"></div>
@@ -217,7 +217,7 @@ const getBillsByYear = () => {
       // Remove duplicates (in case same bill appears multiple times)
       const uniqueBills = Array.from(new Map(yearBills.map(bill => [bill.id, bill])).values())
       sortedBillsByYear[year] = uniqueBills.sort((a, b) => 
-        new Date(a.started_at).getTime() - new Date(b.started_at).getTime()
+        new Date(b.started_at).getTime() - new Date(a.started_at).getTime()
       )
     }
   })
@@ -332,21 +332,6 @@ const getBillStatus = (bill: Bill) => {
   } else {
     return { label: 'Ongoing', color: 'success', variant: 'subtle' }
   }
-}
-
-const getCurrentYearMonthlyPayments = () => {
-  const allMonthlyPayments = getPropsMonthlyPayments()
-  const currentYearPayments: Record<string, number> = {}
-  
-  Object.entries(allMonthlyPayments).forEach(([monthKey, amount]) => {
-    if (monthKey.startsWith(currentYear.toString())) {
-      currentYearPayments[monthKey] = amount as number
-    }
-  })
-  
-  // Sort by month
-  const sortedEntries = Object.entries(currentYearPayments).sort(([a], [b]) => a.localeCompare(b))
-  return Object.fromEntries(sortedEntries)
 }
 
 const getYearMonthlyPayments = (year: number) => {
