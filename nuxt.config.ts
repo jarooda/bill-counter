@@ -8,7 +8,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       supabaseUrl: process.env.SUPABASE_URL,
-      supabaseKey: process.env.SUPABASE_KEY
+      supabaseKey: process.env.SUPABASE_KEY,
+      monthlyThreshold: process.env.MONTHLY_THRESHOLD || '1000000'
     }
   },
   css: ["./app/assets/css/main.css"],

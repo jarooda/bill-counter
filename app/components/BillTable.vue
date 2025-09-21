@@ -32,11 +32,12 @@
         <template #item="{ item }">
           <div v-if="item.label" class="space-y-6 p-4">
             <!-- Bills Table -->
-            <UTable
-              :data="billsByYear[item.label] || []"
-              :columns="columns"
-              class="w-full"
-            >
+            <div class="max-h-96 overflow-y-auto">
+              <UTable
+                :data="billsByYear[item.label] || []"
+                :columns="columns"
+                class="w-full"
+              >
               <template #name-cell="{ row }">
                 <button 
                   @click="$emit('edit-bill', row.original)"
@@ -75,6 +76,7 @@
                 </UBadge>
               </template>
             </UTable>
+            </div>
 
             <!-- Monthly Summary for Each Year -->
             <div class="mt-6">
@@ -86,10 +88,10 @@
                   :class="getMonthStatusClass(month.toString())"
                   class="p-4 rounded-lg"
                 >
-                  <div class="text-sm font-medium">
+                  <div class="text-sm font-medium" :class="getMonthTextClass(month.toString())">
                     {{ formatMonth(month) }}
                   </div>
-                  <div class="text-lg font-bold">
+                  <div class="text-lg font-bold" :class="getMonthTextClass(month.toString())">
                     IDR {{ formatCurrency(amount) }}
                   </div>
                 </div>
@@ -111,11 +113,12 @@
       <div class="space-y-6">
         <div v-for="year in pastYears" :key="year">
           <!-- Bills Table for Past Year -->
-          <UTable
-            :data="billsByYear[year] || []"
-            :columns="columns"
-            class="w-full"
-          >
+          <div class="max-h-96 overflow-y-auto">
+            <UTable
+              :data="billsByYear[year] || []"
+              :columns="columns"
+              class="w-full"
+            >
             <template #name-cell="{ row }">
               <button 
                 @click="$emit('edit-bill', row.original)"
@@ -154,6 +157,7 @@
               </UBadge>
             </template>
           </UTable>
+          </div>
         </div>
       </div>
     </div>
@@ -351,21 +355,70 @@ const getYearMonthlyPayments = (year: number) => {
 
 const getMonthStatusClass = (monthKey: string) => {
   const [year, month] = monthKey.split('-')
-  if (!year || !month) return 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+  if (!year || !month) return 'bg-gray-50 dark:bg-gray-800'
   
   const monthDate = new Date(parseInt(year), parseInt(month) - 1)
   const currentDate = new Date()
   const currentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth())
   
+  const config = useRuntimeConfig()
+  const monthlyThreshold = parseInt(config.public.monthlyThreshold as string)
+  
+  // Get the monthly amount for this specific month
+  const allMonthlyPayments = getPropsMonthlyPayments()
+  const monthlyAmount = allMonthlyPayments[monthKey] || 0
+  
   if (monthDate < currentMonth) {
-    // Past month - gray
-    return 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+    // Past month - always gray background
+    return 'bg-gray-200 dark:bg-gray-700'
   } else if (monthDate.getTime() === currentMonth.getTime()) {
-    // Current month - green
-    return 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+    // Current month - red if over threshold, otherwise green
+    if (monthlyAmount > monthlyThreshold) {
+      return 'bg-red-100 dark:bg-red-900'
+    }
+    return 'bg-green-100 dark:bg-green-900'
   } else {
-    // Future month - yellow
-    return 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
+    // Future month - red if over threshold, otherwise yellow
+    if (monthlyAmount > monthlyThreshold) {
+      return 'bg-red-100 dark:bg-red-900'
+    }
+    return 'bg-yellow-100 dark:bg-yellow-900'
+  }
+}
+
+const getMonthTextClass = (monthKey: string) => {
+  const [year, month] = monthKey.split('-')
+  if (!year || !month) return 'text-gray-600 dark:text-gray-300'
+  
+  const monthDate = new Date(parseInt(year), parseInt(month) - 1)
+  const currentDate = new Date()
+  const currentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth())
+  
+  const config = useRuntimeConfig()
+  const monthlyThreshold = parseInt(config.public.monthlyThreshold as string)
+  
+  // Get the monthly amount for this specific month
+  const allMonthlyPayments = getPropsMonthlyPayments()
+  const monthlyAmount = allMonthlyPayments[monthKey] || 0
+  
+  if (monthDate < currentMonth) {
+    // Past month - red text if over threshold, otherwise gray
+    if (monthlyAmount > monthlyThreshold) {
+      return 'text-red-600 dark:text-red-400'
+    }
+    return 'text-gray-500 dark:text-gray-400'
+  } else if (monthDate.getTime() === currentMonth.getTime()) {
+    // Current month - red if over threshold, otherwise green
+    if (monthlyAmount > monthlyThreshold) {
+      return 'text-red-800 dark:text-red-200'
+    }
+    return 'text-green-800 dark:text-green-200'
+  } else {
+    // Future month - red if over threshold, otherwise yellow
+    if (monthlyAmount > monthlyThreshold) {
+      return 'text-red-800 dark:text-red-200'
+    }
+    return 'text-yellow-800 dark:text-yellow-200'
   }
 }
 </script>
