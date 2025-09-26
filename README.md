@@ -67,11 +67,11 @@ MONTHLY_THRESHOLD=your_monthly_threshold_amount
 
 ### Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `SUPABASE_URL` | Your Supabase project URL | Yes |
-| `SUPABASE_ANON_KEY` | Your Supabase anonymous key | Yes |
-| `MONTHLY_THRESHOLD` | Monthly payment threshold amount | Yes |
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| `SUPABASE_URL` | Your Supabase project URL | Yes | - |
+| `SUPABASE_ANON_KEY` | Your Supabase anonymous key | Yes | - |
+| `MONTHLY_THRESHOLD` | Monthly payment threshold amount | No | 1000000 |
 
 ## Setup
 
