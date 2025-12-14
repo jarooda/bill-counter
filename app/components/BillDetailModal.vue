@@ -89,7 +89,7 @@
   </UModal>
 
   <!-- Delete Confirmation Modal -->
-  <UModal v-model="showDeleteConfirm" title="Confirm Deletion">
+  <UModal v-model:open="showDeleteConfirm" title="Confirm Deletion">
     <template #body>
       <div class="space-y-4">
         <p class="text-sm text-gray-600 dark:text-gray-300">
@@ -111,6 +111,7 @@
 
 <script setup lang="ts">
 import type { Bill } from '~/composables/useBills'
+import { isNil } from 'jalutils'
 
 interface Props {
   open: boolean
@@ -157,8 +158,7 @@ const confirmDelete = () => {
 }
 
 const handleDelete = async () => {
-  if (!props.bill) return
-  
+  if (isNil(props.bill)) return
   loading.value = true
   
   try {

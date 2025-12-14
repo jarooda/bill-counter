@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import type { Bill } from "~/composables/useBills"
 
+// Authentication
+const user = useSupabaseUser()
+const supabase = useSupabaseClient()
+
 // Initialize bills data
 const { fetchBills, loading, error, bills } = useBills()
 
@@ -10,10 +14,24 @@ const showDetailModal = ref(false)
 const selectedBill = ref<Bill | null>(null)
 const editingBill = ref<Bill | null>(null)
 
-// Fetch bills on mount
+// Fetch bills on mount when user is authenticated
 onMounted(() => {
-  fetchBills()
+  if (user.value) {
+    fetchBills()
+  }
 })
+
+// Watch for user changes and fetch bills
+watch(user, (newUser) => {
+  if (newUser) {
+    fetchBills()
+  }
+})
+
+// Logout handler
+const handleLogout = async () => {
+  await supabase.auth.signOut()
+}
 
 // Handler for creating new bill
 const handleCreateBill = () => {
@@ -43,6 +61,7 @@ const handleSuccess = () => {
 const handleBillDeleted = () => {
   fetchBills() // Refresh the data
   selectedBill.value = null
+  showDetailModal.value = false
 }
 
 useHead({
@@ -58,7 +77,11 @@ useHead({
 
 <template>
   <UApp>
-    <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <!-- Show login if not authenticated -->
+    <Login v-if="!user" />
+
+    <!-- Show app if authenticated -->
+    <div v-else class="min-h-screen bg-gray-50 dark:bg-gray-900">
       <NuxtRouteAnnouncer />
 
       <!-- Header -->
@@ -73,7 +96,29 @@ useHead({
                 Track your installment payments and monthly dues
               </p>
             </div>
-            <div class="flex justify-center sm:justify-end">
+            <div class="flex items-center gap-3 justify-center sm:justify-end">
+              <!-- User Info -->
+              <div v-if="user" class="hidden sm:flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                <div class="flex items-center gap-2">
+                  <div v-if="user.user_metadata?.avatar_url" class="w-8 h-8 rounded-full overflow-hidden">
+                    <img :src="user.user_metadata.avatar_url" :alt="user.email" class="w-full h-full object-cover" />
+                  </div>
+                  <span class="font-medium">{{ user.email }}</span>
+                </div>
+              </div>
+              
+              <!-- Logout Button -->
+              <UButton 
+                @click="handleLogout" 
+                icon="i-heroicons-arrow-right-on-rectangle" 
+                color="neutral"
+                variant="ghost"
+                class="sm:w-auto"
+              >
+                <span class="hidden sm:inline">Logout</span>
+              </UButton>
+              
+              <!-- Add Bill Button -->
               <UButton @click="handleCreateBill" icon="i-heroicons-plus" class="w-full sm:w-auto justify-center">
                 <span class="sm:inline">Add New Bill</span>
                 <span class="sm:hidden">Add Bill</span>
