@@ -1,3 +1,5 @@
+import { isNil } from 'jalutils'
+
 export interface Bill {
   id: number
   name: string
@@ -6,6 +8,7 @@ export interface Bill {
   monthly_amount: number
   count: number
   started_at: string
+  user_id: string
 }
 
 export interface BillFormData {
@@ -18,6 +21,7 @@ export interface BillFormData {
 
 export const useBills = () => {
   const supabase = useSupabaseClient<any>()
+  const user = useSupabaseUser()
   const bills = ref<Bill[]>([])
   const loading = ref(true)
   const error = ref<string | null>(null)
@@ -28,9 +32,16 @@ export const useBills = () => {
     error.value = null
     
     try {
+      if (isNil(user.value?.id)) {
+        bills.value = []
+        loading.value = false
+        return
+      }
+
       const { data, error: fetchError } = await supabase
         .from('bills')
         .select('*')
+        .eq('user_id', user.value.id)
         .order('started_at', { ascending: false })
       
       if (fetchError) throw fetchError
@@ -49,6 +60,10 @@ export const useBills = () => {
     error.value = null
 
     try {
+      if (isNil(user.value?.id)) {
+        throw new Error('User must be authenticated to create bills')
+      }
+
       const monthly_amount = Math.round(billData.amount / billData.count)
       
       const { data, error: createError } = await supabase
@@ -56,7 +71,8 @@ export const useBills = () => {
         .insert([
           {
             ...billData,
-            monthly_amount
+            monthly_amount,
+            user_id: user.value.id
           }
         ])
         .select()
@@ -85,7 +101,7 @@ export const useBills = () => {
       const updateData: any = { ...billData }
       
       // Recalculate monthly_amount if amount or count changed
-      if (billData.amount !== undefined && billData.count !== undefined) {
+      if (!isNil(billData.amount) && !isNil(billData.count)) {
         updateData.monthly_amount = Math.round(billData.amount / billData.count)
       }
 

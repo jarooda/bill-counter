@@ -172,6 +172,7 @@
 
 <script setup lang="ts">
 import type { Bill } from '~/composables/useBills'
+import { isNil } from 'jalutils'
 
 interface Props {
   bills: readonly Bill[]
@@ -317,7 +318,7 @@ const formatDate = (dateString: string) => {
 const formatMonth = (monthKey: string | number) => {
   const monthKeyStr = monthKey.toString()
   const [year, month] = monthKeyStr.split('-')
-  if (!year || !month) return monthKeyStr
+  if (isNil(year) || isNil(month)) return monthKeyStr
   const date = new Date(parseInt(year), parseInt(month) - 1)
   return date.toLocaleDateString('en-US', {
     month: 'short',
@@ -355,7 +356,7 @@ const getYearMonthlyPayments = (year: number) => {
 
 const getMonthStatusClass = (monthKey: string) => {
   const [year, month] = monthKey.split('-')
-  if (!year || !month) return 'bg-gray-50 dark:bg-gray-800'
+  if (isNil(year) || isNil(month)) return 'bg-gray-50 dark:bg-gray-800'
   
   const monthDate = new Date(parseInt(year), parseInt(month) - 1)
   const currentDate = new Date()
@@ -388,7 +389,7 @@ const getMonthStatusClass = (monthKey: string) => {
 
 const getMonthTextClass = (monthKey: string) => {
   const [year, month] = monthKey.split('-')
-  if (!year || !month) return 'text-gray-600 dark:text-gray-300'
+  if (isNil(year) || isNil(month)) return 'text-gray-600 dark:text-gray-300'
   
   const monthDate = new Date(parseInt(year), parseInt(month) - 1)
   const currentDate = new Date()
