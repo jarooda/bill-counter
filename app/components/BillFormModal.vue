@@ -34,14 +34,14 @@
 
         <div class="grid grid-cols-[120px_1fr] gap-3 items-center">
           <div class="text-sm font-medium text-gray-700 dark:text-gray-300">Total Amount (IDR) *</div>
-          <UInput
+          <input
+            ref="amountInput"
             id="amount"
-            v-model.number="formData.amount"
-            type="number"
-            placeholder="Enter total amount"
+            type="text"
+            placeholder="e.g., 1.000.000"
             :disabled="loading"
             required
-            min="1"
+            class="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-950 dark:ring-offset-gray-950 dark:placeholder:text-gray-400 dark:focus-visible:ring-blue-600"
           />
         </div>
 
@@ -67,9 +67,9 @@
           />
         </div>
 
-        <div v-if="formData.amount && formData.count" class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+        <div v-if="amountTyped && formData.count" class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
           <p class="text-sm text-blue-700 dark:text-blue-300">
-            Monthly payment: <strong>IDR {{ formatCurrency(Math.round(formData.amount / formData.count)) }}</strong>
+            Monthly payment: <strong>IDR {{ formatCurrency(Math.round(amountTyped / formData.count)) }}</strong>
           </p>
         </div>
 
@@ -88,6 +88,7 @@
 
 <script setup lang="ts">
 import type { BillFormData, Bill } from '~/composables/useBills'
+import { useCurrencyMask } from '~/composables/useCurrencyMask'
 
 interface Props {
   open: boolean
@@ -116,6 +117,12 @@ const isOpen = computed({
 const isEdit = computed(() => !!props.bill)
 const loading = ref(false)
 
+const { el: amountInput, typed: amountTyped, masked: amountMasked } = useCurrencyMask({
+  onAccept: (value, unmasked, typed) => {
+    // Value automatically synced via amountTyped ref
+  }
+})
+
 // Credit card installment options
 const installmentOptions = [
   { label: '3 months', value: 3 },
@@ -136,18 +143,20 @@ watch(selectedInstallment, (newSelection) => {
   }
 })
 
-const defaultFormData: BillFormData = {
+const defaultFormData: Omit<BillFormData, 'amount'> = {
   name: '',
   desc: '',
-  amount: 0,
   count: 3,
   started_at: new Date().toISOString().slice(0, 7) || ''
 }
 
-const formData = ref<BillFormData>({ ...defaultFormData })
+const formData = ref<Omit<BillFormData, 'amount'>>({ ...defaultFormData })
 
 const resetForm = () => {
   formData.value = { ...defaultFormData }
+  if (amountInput.value) {
+    amountInput.value.value = ''
+  }
 }
 
 // Watch for bill prop changes to populate form
@@ -156,9 +165,12 @@ watch(() => props.bill, (newBill) => {
     formData.value = {
       name: newBill.name,
       desc: newBill.desc,
-      amount: newBill.amount,
       count: newBill.count,
       started_at: new Date(newBill.started_at).toISOString().slice(0, 7) || ''
+    }
+    // Set amount in the masked input
+    if (amountInput.value) {
+      amountInput.value.value = newBill.amount.toLocaleString('id-ID')
     }
     // Set the selected installment option
     selectedInstallment.value = installmentOptions.find(option => option.value === newBill.count) || installmentOptions[0]
@@ -180,6 +192,7 @@ const handleSubmit = async () => {
     // Convert the month format (YYYY-MM) to a proper timestamp
     const submitData = {
       ...formData.value,
+      amount: amountTyped.value,
       started_at: `${formData.value.started_at}-01T00:00:00.000Z`
     }
     

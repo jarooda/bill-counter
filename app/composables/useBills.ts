@@ -19,12 +19,120 @@ export interface BillFormData {
   started_at: string
 }
 
+export interface UserSettings {
+  id: string
+  user_id: string
+  monthly_threshold: number
+  created_at: string
+  updated_at: string
+}
+
 export const useBills = () => {
   const supabase = useSupabaseClient<any>()
   const user = useSupabaseUser()
-  const bills = ref<Bill[]>([])
-  const loading = ref(true)
-  const error = ref<string | null>(null)
+  
+  // Use useState to create singleton state across all components
+  const bills = useState<Bill[]>('bills', () => [])
+  const loading = useState<boolean>('bills-loading', () => true)
+  const error = useState<string | null>('bills-error', () => null)
+  const monthlyThreshold = useState<number>('monthly-threshold', () => 1000000)
+
+  // Fetch user settings (monthly threshold)
+  const fetchUserSettings = async () => {
+    try {
+      if (isNil(user.value?.id)) {
+        console.log('No user ID, skipping fetchUserSettings')
+        return
+      }
+
+      console.log('Fetching user settings for user:', user.value.id)
+      const { data, error: fetchError } = await supabase
+        .from('user_settings')
+        .select('*')
+        .eq('user_id', user.value.id)
+        .single()
+
+      if (fetchError) {
+        console.log('Fetch error:', fetchError)
+        // If settings don't exist, create default settings
+        if (fetchError.code === 'PGRST116') {
+          await createUserSettings()
+        } else {
+          console.error('Error fetching user settings:', fetchError)
+        }
+        return
+      }
+
+      if (data) {
+        console.log('User settings data:', data)
+        console.log('Setting monthlyThreshold from', monthlyThreshold.value, 'to', data.monthly_threshold)
+        monthlyThreshold.value = data.monthly_threshold
+        console.log('monthlyThreshold after update:', monthlyThreshold.value)
+      } else {
+        console.log('No data returned from user_settings')
+      }
+    } catch (err: any) {
+      console.error('Error fetching user settings:', err)
+    }
+  }
+
+  // Create default user settings
+  const createUserSettings = async () => {
+    try {
+      if (isNil(user.value?.id)) {
+        return
+      }
+
+      const { data, error: createError } = await supabase
+        .from('user_settings')
+        .insert([
+          {
+            user_id: user.value.id,
+            monthly_threshold: 1000000 // Default threshold
+          }
+        ])
+        .select()
+        .single()
+
+      if (createError) {
+        console.error('Error creating user settings:', createError)
+        return
+      }
+
+      if (data) {
+        monthlyThreshold.value = data.monthly_threshold
+      }
+    } catch (err: any) {
+      console.error('Error creating user settings:', err)
+    }
+  }
+
+  // Update monthly threshold
+  const updateMonthlyThreshold = async (newThreshold: number) => {
+    try {
+      if (isNil(user.value?.id)) {
+        throw new Error('User must be authenticated to update settings')
+      }
+
+      const { data, error: updateError } = await supabase
+        .from('user_settings')
+        .update({ monthly_threshold: newThreshold })
+        .eq('user_id', user.value.id)
+        .select()
+        .single()
+
+      if (updateError) throw updateError
+
+      if (data) {
+        monthlyThreshold.value = data.monthly_threshold
+      }
+
+      return data
+    } catch (err: any) {
+      console.error('Error updating monthly threshold:', err)
+      throw err
+    }
+  }
 
   // Fetch all bills
   const fetchBills = async () => {
@@ -218,7 +326,10 @@ export const useBills = () => {
     bills: readonly(bills),
     loading: readonly(loading),
     error: readonly(error),
+    monthlyThreshold: readonly(monthlyThreshold),
     fetchBills,
+    fetchUserSettings,
+    updateMonthlyThreshold,
     createBill,
     updateBill,
     deleteBill,

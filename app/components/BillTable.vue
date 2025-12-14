@@ -185,7 +185,7 @@ interface Emits {
 const props = defineProps<Props>()
 defineEmits<Emits>()
 
-const { getMonthlyPayments } = useBills()
+const { getMonthlyPayments, monthlyThreshold } = useBills()
 
 const currentYear = new Date().getFullYear()
 
@@ -362,25 +362,25 @@ const getMonthStatusClass = (monthKey: string) => {
   const currentDate = new Date()
   const currentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth())
   
-  const config = useRuntimeConfig()
-  const monthlyThreshold = parseInt(config.public.monthlyThreshold as string)
-  
   // Get the monthly amount for this specific month
   const allMonthlyPayments = getPropsMonthlyPayments()
   const monthlyAmount = allMonthlyPayments[monthKey] || 0
+  
+  // Debug log
+  console.log('Threshold check:', monthlyAmount, '>', monthlyThreshold.value, '=', monthlyAmount > monthlyThreshold.value)
   
   if (monthDate < currentMonth) {
     // Past month - always gray background
     return 'bg-gray-200 dark:bg-gray-700'
   } else if (monthDate.getTime() === currentMonth.getTime()) {
     // Current month - red if over threshold, otherwise green
-    if (monthlyAmount > monthlyThreshold) {
+    if (monthlyAmount > monthlyThreshold.value) {
       return 'bg-red-100 dark:bg-red-900'
     }
     return 'bg-green-100 dark:bg-green-900'
   } else {
     // Future month - red if over threshold, otherwise yellow
-    if (monthlyAmount > monthlyThreshold) {
+    if (monthlyAmount > monthlyThreshold.value) {
       return 'bg-red-100 dark:bg-red-900'
     }
     return 'bg-yellow-100 dark:bg-yellow-900'
@@ -395,28 +395,25 @@ const getMonthTextClass = (monthKey: string) => {
   const currentDate = new Date()
   const currentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth())
   
-  const config = useRuntimeConfig()
-  const monthlyThreshold = parseInt(config.public.monthlyThreshold as string)
-  
   // Get the monthly amount for this specific month
   const allMonthlyPayments = getPropsMonthlyPayments()
   const monthlyAmount = allMonthlyPayments[monthKey] || 0
   
   if (monthDate < currentMonth) {
     // Past month - red text if over threshold, otherwise gray
-    if (monthlyAmount > monthlyThreshold) {
+    if (monthlyAmount > monthlyThreshold.value) {
       return 'text-red-600 dark:text-red-400'
     }
     return 'text-gray-500 dark:text-gray-400'
   } else if (monthDate.getTime() === currentMonth.getTime()) {
     // Current month - red if over threshold, otherwise green
-    if (monthlyAmount > monthlyThreshold) {
+    if (monthlyAmount > monthlyThreshold.value) {
       return 'text-red-800 dark:text-red-200'
     }
     return 'text-green-800 dark:text-green-200'
   } else {
     // Future month - red if over threshold, otherwise yellow
-    if (monthlyAmount > monthlyThreshold) {
+    if (monthlyAmount > monthlyThreshold.value) {
       return 'text-red-800 dark:text-red-200'
     }
     return 'text-yellow-800 dark:text-yellow-200'
