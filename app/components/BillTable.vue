@@ -82,11 +82,12 @@
             <div class="mt-6">
               <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Monthly Payment Summary {{ item.label }}</h3>
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                <div 
+                <button 
                   v-for="(amount, month) in getYearMonthlyPayments(parseInt(item.label))" 
                   :key="month"
+                  @click="openMonthDetail(month.toString())"
                   :class="getMonthStatusClass(month.toString())"
-                  class="p-4 rounded-lg"
+                  class="p-4 rounded-lg cursor-pointer hover:shadow-lg transition-shadow text-left"
                 >
                   <div class="text-sm font-medium" :class="getMonthTextClass(month.toString())">
                     {{ formatMonth(month) }}
@@ -94,7 +95,7 @@
                   <div class="text-lg font-bold" :class="getMonthTextClass(month.toString())">
                     IDR {{ formatCurrency(amount) }}
                   </div>
-                </div>
+                </button>
               </div>
             </div>
           </div>
@@ -167,6 +168,13 @@
       <div class="text-gray-400 text-lg mb-2">No bills found</div>
       <p class="text-gray-500">Start by adding your first installment bill</p>
     </div>
+
+    <!-- Monthly Bill Detail Modal -->
+    <MonthlyBillDetailModal 
+      v-model="showMonthDetailModal" 
+      :month-key="selectedMonthKey" 
+      :bills="bills"
+    />
   </div>
 </template>
 
@@ -185,9 +193,18 @@ interface Emits {
 const props = defineProps<Props>()
 defineEmits<Emits>()
 
-const { getMonthlyPayments } = useBills()
+const { getMonthlyPayments, monthlyThreshold } = useBills()
 
 const currentYear = new Date().getFullYear()
+
+// Modal state for monthly bill details
+const showMonthDetailModal = ref(false)
+const selectedMonthKey = ref('')
+
+const openMonthDetail = (monthKey: string) => {
+  selectedMonthKey.value = monthKey
+  showMonthDetailModal.value = true
+}
 
 // Group bills by year
 const getBillsByYear = () => {
@@ -362,9 +379,6 @@ const getMonthStatusClass = (monthKey: string) => {
   const currentDate = new Date()
   const currentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth())
   
-  const config = useRuntimeConfig()
-  const monthlyThreshold = parseInt(config.public.monthlyThreshold as string)
-  
   // Get the monthly amount for this specific month
   const allMonthlyPayments = getPropsMonthlyPayments()
   const monthlyAmount = allMonthlyPayments[monthKey] || 0
@@ -374,13 +388,13 @@ const getMonthStatusClass = (monthKey: string) => {
     return 'bg-gray-200 dark:bg-gray-700'
   } else if (monthDate.getTime() === currentMonth.getTime()) {
     // Current month - red if over threshold, otherwise green
-    if (monthlyAmount > monthlyThreshold) {
+    if (monthlyAmount > monthlyThreshold.value) {
       return 'bg-red-100 dark:bg-red-900'
     }
     return 'bg-green-100 dark:bg-green-900'
   } else {
     // Future month - red if over threshold, otherwise yellow
-    if (monthlyAmount > monthlyThreshold) {
+    if (monthlyAmount > monthlyThreshold.value) {
       return 'bg-red-100 dark:bg-red-900'
     }
     return 'bg-yellow-100 dark:bg-yellow-900'
@@ -395,28 +409,25 @@ const getMonthTextClass = (monthKey: string) => {
   const currentDate = new Date()
   const currentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth())
   
-  const config = useRuntimeConfig()
-  const monthlyThreshold = parseInt(config.public.monthlyThreshold as string)
-  
   // Get the monthly amount for this specific month
   const allMonthlyPayments = getPropsMonthlyPayments()
   const monthlyAmount = allMonthlyPayments[monthKey] || 0
   
   if (monthDate < currentMonth) {
     // Past month - red text if over threshold, otherwise gray
-    if (monthlyAmount > monthlyThreshold) {
+    if (monthlyAmount > monthlyThreshold.value) {
       return 'text-red-600 dark:text-red-400'
     }
     return 'text-gray-500 dark:text-gray-400'
   } else if (monthDate.getTime() === currentMonth.getTime()) {
     // Current month - red if over threshold, otherwise green
-    if (monthlyAmount > monthlyThreshold) {
+    if (monthlyAmount > monthlyThreshold.value) {
       return 'text-red-800 dark:text-red-200'
     }
     return 'text-green-800 dark:text-green-200'
   } else {
     // Future month - red if over threshold, otherwise yellow
-    if (monthlyAmount > monthlyThreshold) {
+    if (monthlyAmount > monthlyThreshold.value) {
       return 'text-red-800 dark:text-red-200'
     }
     return 'text-yellow-800 dark:text-yellow-200'

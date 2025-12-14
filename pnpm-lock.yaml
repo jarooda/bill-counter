@@ -32,6 +32,9 @@ importers:
       vue:
         specifier: ^3.5.21
         version: 3.5.21(typescript@5.9.2)
+      vue-imask:
+        specifier: ^7.6.1
+        version: 7.6.1(vue@3.5.21(typescript@5.9.2))
       vue-router:
         specifier: ^4.5.1
         version: 4.5.1(vue@3.5.21(typescript@5.9.2))
@@ -156,6 +159,10 @@ packages:
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
+
+  '@babel/runtime-corejs3@7.28.4':
+    resolution: {integrity: sha512-h7iEYiW4HebClDEhtvFObtPmIvrd1SSfpI9EhOeKk4CtIK/ngBWFpuhCzhdmRKtg71ylcue+9I6dv54XYO1epQ==}
+    engines: {node: '>=6.9.0'}
 
   '@babel/template@7.27.2':
     resolution: {integrity: sha512-LPDZ85aEJyYSd18/DkjNh4/y1ntkE5KwUHWTiqgRxruuZL2F1yuHligVHLvcHY2vMHXttKFpJn6LwfI7cw7ODw==}
@@ -1702,6 +1709,9 @@ packages:
     resolution: {integrity: sha512-yCEafptTtb4bk7GLEQoM8KVJpxAfdBJYaXyzQEgQQQgYrZiDp8SJmGKlYza6CYjEDNstAdNdKA3UuoULlEbS6w==}
     engines: {node: '>=12.13'}
 
+  core-js-pure@3.47.0:
+    resolution: {integrity: sha512-BcxeDbzUrRnXGYIVAGFtcGQVNpFcUhVjr6W7F8XktvQW2iJP9e66GP6xdKotCRFlrxBvNIBrhwKteRXqMV86Nw==}
+
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
 
@@ -2171,6 +2181,10 @@ packages:
 
   image-meta@0.2.1:
     resolution: {integrity: sha512-K6acvFaelNxx8wc2VjbIzXKDVB0Khs0QT35U6NkGfTdCmjLNcO2945m7RFNR9/RPVFm48hq7QPzK8uGH18HCGw==}
+
+  imask@7.6.1:
+    resolution: {integrity: sha512-sJlIFM7eathUEMChTh9Mrfw/IgiWgJqBKq2VNbyXvBZ7ev/IlO6/KQTKlV/Fm+viQMLrFLG/zCuudrLIwgK2dg==}
+    engines: {npm: '>=4.0.0'}
 
   impound@1.0.0:
     resolution: {integrity: sha512-8lAJ+1Arw2sMaZ9HE2ZmL5zOcMnt18s6+7Xqgq2aUVy4P1nlzAyPtzCDxsk51KVFwHEEdc6OWvUyqwHwhRYaug==}
@@ -3571,6 +3585,11 @@ packages:
   vue-devtools-stub@0.1.0:
     resolution: {integrity: sha512-RutnB7X8c5hjq39NceArgXg28WZtZpGc3+J16ljMiYnFhKvd8hITxSWQSQ5bvldxMDU6gG5mkxl1MTQLXckVSQ==}
 
+  vue-imask@7.6.1:
+    resolution: {integrity: sha512-/5ZVNerI9Dn6gZ/cSCYGiZK4JHdwsEBgHBTRpVwS2U0URxK/Jt5FlQuoL1DhbxC6t4ElcVMWYOvkE2hR8hdt1w==}
+    peerDependencies:
+      vue: '>=2.7'
+
   vue-router@4.5.1:
     resolution: {integrity: sha512-ogAF3P97NPm8fJsE4by9dwSYtDwXIY1nFY9T6DyQnGHd1E2Da94w9JIolpe42LJGIl0DwOHBi8TcRPlPGwbTtw==}
     peerDependencies:
@@ -3819,6 +3838,10 @@ snapshots:
       '@babel/plugin-syntax-typescript': 7.27.1(@babel/core@7.28.4)
     transitivePeerDependencies:
       - supports-color
+
+  '@babel/runtime-corejs3@7.28.4':
+    dependencies:
+      core-js-pure: 3.47.0
 
   '@babel/template@7.27.2':
     dependencies:
@@ -5523,6 +5546,8 @@ snapshots:
     dependencies:
       is-what: 4.1.16
 
+  core-js-pure@3.47.0: {}
+
   core-util-is@1.0.3: {}
 
   crc-32@1.2.2: {}
@@ -5991,6 +6016,10 @@ snapshots:
   ignore@7.0.5: {}
 
   image-meta@0.2.1: {}
+
+  imask@7.6.1:
+    dependencies:
+      '@babel/runtime-corejs3': 7.28.4
 
   impound@1.0.0:
     dependencies:
@@ -7572,6 +7601,14 @@ snapshots:
       vue: 3.5.21(typescript@5.9.2)
 
   vue-devtools-stub@0.1.0: {}
+
+  vue-imask@7.6.1(vue@3.5.21(typescript@5.9.2)):
+    dependencies:
+      imask: 7.6.1
+      vue: 3.5.21(typescript@5.9.2)
+      vue-demi: 0.14.10(vue@3.5.21(typescript@5.9.2))
+    transitivePeerDependencies:
+      - '@vue/composition-api'
 
   vue-router@4.5.1(vue@3.5.21(typescript@5.9.2)):
     dependencies:

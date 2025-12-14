@@ -6,25 +6,28 @@ const user = useSupabaseUser()
 const supabase = useSupabaseClient()
 
 // Initialize bills data
-const { fetchBills, loading, error, bills } = useBills()
+const { fetchBills, fetchUserSettings, loading, error, bills } = useBills()
 
 // Modal states
 const showCreateModal = ref(false)
 const showDetailModal = ref(false)
+const showSettingsModal = ref(false)
 const selectedBill = ref<Bill | null>(null)
 const editingBill = ref<Bill | null>(null)
 
-// Fetch bills on mount when user is authenticated
+// Fetch bills and user settings on mount when user is authenticated
 onMounted(() => {
   if (user.value) {
     fetchBills()
+    fetchUserSettings()
   }
 })
 
-// Watch for user changes and fetch bills
+// Watch for user changes and fetch bills and settings
 watch(user, (newUser) => {
   if (newUser) {
     fetchBills()
+    fetchUserSettings()
   }
 })
 
@@ -107,6 +110,16 @@ useHead({
                 </div>
               </div>
               
+              <!-- Settings Button -->
+              <UButton 
+                @click="showSettingsModal = true" 
+                icon="i-heroicons-cog-6-tooth" 
+                color="neutral"
+                variant="ghost"
+                aria-label="Settings"
+                :disabled="loading"
+              />
+              
               <!-- Logout Button -->
               <UButton 
                 @click="handleLogout" 
@@ -157,6 +170,11 @@ useHead({
         :bill="selectedBill"
         @edit-bill="handleEditBillFromDetail"
         @deleted="handleBillDeleted"
+      />
+
+      <SettingsModal
+        v-model:open="showSettingsModal"
+        @success="handleSuccess"
       />
     </div>
   </UApp>
