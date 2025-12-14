@@ -41,11 +41,9 @@ export const useBills = () => {
   const fetchUserSettings = async () => {
     try {
       if (isNil(user.value?.id)) {
-        console.log('No user ID, skipping fetchUserSettings')
         return
       }
 
-      console.log('Fetching user settings for user:', user.value.id)
       const { data, error: fetchError } = await supabase
         .from('user_settings')
         .select('*')
@@ -53,7 +51,6 @@ export const useBills = () => {
         .single()
 
       if (fetchError) {
-        console.log('Fetch error:', fetchError)
         // If settings don't exist, create default settings
         if (fetchError.code === 'PGRST116') {
           await createUserSettings()
@@ -64,12 +61,7 @@ export const useBills = () => {
       }
 
       if (data) {
-        console.log('User settings data:', data)
-        console.log('Setting monthlyThreshold from', monthlyThreshold.value, 'to', data.monthly_threshold)
         monthlyThreshold.value = data.monthly_threshold
-        console.log('monthlyThreshold after update:', monthlyThreshold.value)
-      } else {
-        console.log('No data returned from user_settings')
       }
     } catch (err: any) {
       console.error('Error fetching user settings:', err)

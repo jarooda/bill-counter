@@ -82,11 +82,12 @@
             <div class="mt-6">
               <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Monthly Payment Summary {{ item.label }}</h3>
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                <div 
+                <button 
                   v-for="(amount, month) in getYearMonthlyPayments(parseInt(item.label))" 
                   :key="month"
+                  @click="openMonthDetail(month.toString())"
                   :class="getMonthStatusClass(month.toString())"
-                  class="p-4 rounded-lg"
+                  class="p-4 rounded-lg cursor-pointer hover:shadow-lg transition-shadow text-left"
                 >
                   <div class="text-sm font-medium" :class="getMonthTextClass(month.toString())">
                     {{ formatMonth(month) }}
@@ -94,7 +95,7 @@
                   <div class="text-lg font-bold" :class="getMonthTextClass(month.toString())">
                     IDR {{ formatCurrency(amount) }}
                   </div>
-                </div>
+                </button>
               </div>
             </div>
           </div>
@@ -167,6 +168,13 @@
       <div class="text-gray-400 text-lg mb-2">No bills found</div>
       <p class="text-gray-500">Start by adding your first installment bill</p>
     </div>
+
+    <!-- Monthly Bill Detail Modal -->
+    <MonthlyBillDetailModal 
+      v-model="showMonthDetailModal" 
+      :month-key="selectedMonthKey" 
+      :bills="bills"
+    />
   </div>
 </template>
 
@@ -188,6 +196,15 @@ defineEmits<Emits>()
 const { getMonthlyPayments, monthlyThreshold } = useBills()
 
 const currentYear = new Date().getFullYear()
+
+// Modal state for monthly bill details
+const showMonthDetailModal = ref(false)
+const selectedMonthKey = ref('')
+
+const openMonthDetail = (monthKey: string) => {
+  selectedMonthKey.value = monthKey
+  showMonthDetailModal.value = true
+}
 
 // Group bills by year
 const getBillsByYear = () => {
@@ -365,9 +382,6 @@ const getMonthStatusClass = (monthKey: string) => {
   // Get the monthly amount for this specific month
   const allMonthlyPayments = getPropsMonthlyPayments()
   const monthlyAmount = allMonthlyPayments[monthKey] || 0
-  
-  // Debug log
-  console.log('Threshold check:', monthlyAmount, '>', monthlyThreshold.value, '=', monthlyAmount > monthlyThreshold.value)
   
   if (monthDate < currentMonth) {
     // Past month - always gray background
