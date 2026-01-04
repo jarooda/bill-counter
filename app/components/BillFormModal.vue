@@ -159,26 +159,40 @@ const resetForm = () => {
   }
 }
 
-// Watch for bill prop changes to populate form
-watch(() => props.bill, (newBill) => {
-  if (newBill) {
+// Populate form when bill changes or modal opens
+const populateForm = (bill: Bill | null | undefined) => {
+  if (bill) {
     formData.value = {
-      name: newBill.name,
-      desc: newBill.desc,
-      count: newBill.count,
-      started_at: new Date(newBill.started_at).toISOString().slice(0, 7) || ''
+      name: bill.name,
+      desc: bill.desc,
+      count: bill.count,
+      started_at: bill.started_at.slice(0, 7) || ''
     }
-    // Set amount in the masked input
-    if (amountInput.value) {
-      amountInput.value.value = newBill.amount.toLocaleString('id-ID')
-    }
+    // Set amount in the masked input - use nextTick to ensure DOM is ready
+    nextTick(() => {
+      if (amountInput.value) {
+        amountInput.value.value = formatCurrency(bill.amount)
+      }
+    })
     // Set the selected installment option
-    selectedInstallment.value = installmentOptions.find(option => option.value === newBill.count) || installmentOptions[0]
+    selectedInstallment.value = installmentOptions.find(option => option.value === bill.count) || installmentOptions[0]
   } else {
     resetForm()
     selectedInstallment.value = installmentOptions[0]
   }
+}
+
+// Watch for bill prop changes to populate form
+watch(() => props.bill, (newBill) => {
+  populateForm(newBill)
 }, { immediate: true })
+
+// Watch for modal opening to repopulate form
+watch(() => props.open, (isOpen) => {
+  if (isOpen && props.bill) {
+    populateForm(props.bill)
+  }
+})
 
 const closeModal = () => {
   isOpen.value = false

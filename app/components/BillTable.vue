@@ -110,56 +110,51 @@
         <div class="flex-1 border-t border-gray-200 dark:border-gray-700"></div>
       </h2>
       
-      <!-- Past Years (Simple Tables) -->
-      <div class="space-y-6">
-        <div v-for="year in pastYears" :key="year">
-          <!-- Bills Table for Past Year -->
-          <div class="max-h-96 overflow-y-auto">
-            <UTable
-              :data="billsByYear[year] || []"
-              :columns="columns"
-              class="w-full"
-            >
-            <template #name-cell="{ row }">
-              <button 
-                @click="$emit('edit-bill', row.original)"
-                class="text-left text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 font-medium hover:underline"
-              >
-                {{ row.original.name }}
-              </button>
-            </template>
+      <!-- All Past Years Bills in Single Table -->
+      <div>
+        <UTable
+          :data="pastYearsBills"
+          :columns="columns"
+          class="w-full"
+        >
+        <template #name-cell="{ row }">
+          <button 
+            @click="$emit('edit-bill', row.original)"
+            class="text-left text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 font-medium hover:underline"
+          >
+            {{ row.original.name }}
+          </button>
+        </template>
 
-            <template #desc-cell="{ row }">
-              <span class="text-gray-600 dark:text-gray-300">{{ row.original.desc || '-' }}</span>
-            </template>
+        <template #desc-cell="{ row }">
+          <span class="text-gray-600 dark:text-gray-300">{{ row.original.desc || '-' }}</span>
+        </template>
 
-            <template #amount-cell="{ row }">
-              <span class="font-mono">IDR {{ formatCurrency(row.original.amount) }}</span>
-            </template>
+        <template #amount-cell="{ row }">
+          <span class="font-mono">IDR {{ formatCurrency(row.original.amount) }}</span>
+        </template>
 
-            <template #monthly_amount-cell="{ row }">
-              <span class="font-mono text-green-600 dark:text-green-400">IDR {{ formatCurrency(row.original.monthly_amount) }}</span>
-            </template>
+        <template #monthly_amount-cell="{ row }">
+          <span class="font-mono text-green-600 dark:text-green-400">IDR {{ formatCurrency(row.original.monthly_amount) }}</span>
+        </template>
 
-            <template #count-cell="{ row }">
-              <span class="font-medium">{{ row.original.count }} months</span>
-            </template>
+        <template #count-cell="{ row }">
+          <span class="font-medium">{{ row.original.count }} months</span>
+        </template>
 
-            <template #started_at-cell="{ row }">
-              <span class="text-gray-600 dark:text-gray-300">{{ formatDate(row.original.started_at) }}</span>
-            </template>
+        <template #started_at-cell="{ row }">
+          <span class="text-gray-600 dark:text-gray-300">{{ formatDate(row.original.started_at) }}</span>
+        </template>
 
-            <template #status-cell="{ row }">
-              <UBadge 
-                :color="getBillStatus(row.original).color as any" 
-                :variant="getBillStatus(row.original).variant as any"
-              >
-                {{ getBillStatus(row.original).label }}
-              </UBadge>
-            </template>
-          </UTable>
-          </div>
-        </div>
+        <template #status-cell="{ row }">
+          <UBadge 
+            :color="getBillStatus(row.original).color as any" 
+            :variant="getBillStatus(row.original).variant as any"
+          >
+            {{ getBillStatus(row.original).label }}
+          </UBadge>
+        </template>
+      </UTable>
       </div>
     </div>
 
@@ -256,6 +251,27 @@ const currentAndFutureYears = computed(() => {
 
 const pastYears = computed(() => {
   return Object.keys(billsByYear.value).filter(year => parseInt(year) < currentYear).sort((a, b) => parseInt(b) - parseInt(a))
+})
+
+// Combine all bills from past years into a single array
+const pastYearsBills = computed(() => {
+  const allPastBills: Bill[] = []
+  const seenBillIds = new Set<string>()
+  
+  pastYears.value.forEach(year => {
+    const yearBills = billsByYear.value[year] || []
+    yearBills.forEach(bill => {
+      if (!seenBillIds.has(bill.id)) {
+        allPastBills.push(bill)
+        seenBillIds.add(bill.id)
+      }
+    })
+  })
+  
+  // Sort by start date in descending order
+  return allPastBills.sort((a, b) => 
+    new Date(b.started_at).getTime() - new Date(a.started_at).getTime()
+  )
 })
 
 // Create accordion items from current and future years only
